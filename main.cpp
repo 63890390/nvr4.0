@@ -446,6 +446,7 @@ int main(int argc, char** argv) {
         
         /*Заставляем систему сбросить все данные из кэша в файл*/
         fflush(dstFile);
+        
 
         /*Удаляем файл фрагмента, так как всё содержимое уже в памяти*/
         fs::remove(currentSourseFile);
