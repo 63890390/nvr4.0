@@ -41,12 +41,12 @@ private:
     long long bytes;
 
     void FormatBytes() {
-        const char *sizes[5] = {"B", "KB", "MB", "GB", "TB"};
+        const char *sizes[5] = {" B", "KB", "MB", "GB", "TB"};
         int i;
         double dblByte = bytes;
         for (i = 0; i < 5 && bytes >= 1024; i++, bytes /= 1024)
             dblByte = bytes / 1024.0;
-        sprintf(str, "%.3f %s", dblByte, sizes[i]);
+        sprintf(str, "%.2f %s", dblByte, sizes[i]);
     }
 
 };
