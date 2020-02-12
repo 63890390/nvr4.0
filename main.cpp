@@ -20,6 +20,7 @@
 #include <unistd.h>
 #include <thread>
 #include <map>
+#include <vector>
 
 #include <netinet/ip.h>
 #include <string.h> //for memset
@@ -30,12 +31,13 @@
 #include "terminal_control.hpp"
 #include "ms.hpp"
 #include "printer.hpp"
+#include "Channel.hpp"
+#include "VideoFileFragment.hpp"
 
 
 
 using namespace std;
 namespace fs = std::experimental::filesystem;
-
 
 
 //глобальная переменная отвечающая за выход из программы
@@ -59,11 +61,6 @@ void setExitFunction() {
     sigaction(SIGINT, &sa, 0);
 }
 
-/* Структура описания канала */
-struct Channel {
-    char name[32]; //имя канала
-    long double firstStart; //время первой записи
-};
 
 /*Структура которую передаёт FF*/
 struct FromFF {
@@ -75,6 +72,7 @@ struct FromFF {
     char source_dir[512];
     char camname[32];
 };
+
 
 bool NetInit(int& mainSocket, const int& incomingPort, int countReconect, int timePeriodReconect) {
 
@@ -212,7 +210,7 @@ bool CreateNewDstFile(FILE* &dstFile, string &curPrefix, fs::path &currentDstFil
     dstFile = fopen(currentDstFile.c_str(), "a+");
     if (dstFile == NULL)
     {
-        cerr << "Ошибка создания файла видеоданных: " << strerror(errno) << "\r\n";
+        //cerr << "Ошибка создания файла видеоданных: " << strerror(errno) << "\r\n";
         return true;
     }
     return false;
@@ -220,9 +218,6 @@ bool CreateNewDstFile(FILE* &dstFile, string &curPrefix, fs::path &currentDstFil
 }
 
 int main(int argc, char** argv) {
-    //    printer p;
-    //    p.printTable();
-
 
     /*Включаем отлавливание прерывание программы*/
     setExitFunction();
@@ -368,10 +363,10 @@ int main(int argc, char** argv) {
 
         /*Текущий канал*/
         Channel & currentChannel = channels.at(currentChannelId);
-        gotoxy(1, 3)cout << "Номер канала: " << currentChannelId << "                  ";
-        gotoxy(20, 3);
+        gotoxy(1, 4+currentChannelId)cout << "Номер канала: " << currentChannelId << "                  ";
+        gotoxy(20, 4+currentChannelId);
         cout << "Name: " << currentChannel.name << "                   ";
-        gotoxy(50, 3);
+        gotoxy(50, 4+currentChannelId);
         cout << "File: " << recivedDataFF.filename << "                   \r\n";
 
         /*Читаем фрагмент в память*/
@@ -392,7 +387,7 @@ int main(int argc, char** argv) {
 
         /*Смотрим размер в байтах файла сегмента видео данных*/
         currentSrcSize = fs::file_size(currentSourseFile);
-        gotoxy(90, 3);
+        gotoxy(90, 4+currentChannelId);
         cout << "Size: " << ms(currentSrcSize) << "                                \r\n";
 
         /*Выделяем место в оперативной памяти для загрузки всего файла*/
@@ -437,15 +432,44 @@ int main(int argc, char** argv) {
             continue;
         }
         currentDstSize = fs::file_size(currentDstFile);
-        gotoxy(1, 4);
+        gotoxy(1, 3);
         cout << "Data-File:" << currentDstFile.filename().string() << "                      \r\n";
-        gotoxy(50, 4); 
+        gotoxy(50, 3); 
         cout << "Max size:"<<ms(maxFileSize) << "         \r\n";
-        gotoxy(90, 4);
+        gotoxy(90, 3);
         cout << "Size:" << ms(currentDstSize) << "       \r\n";
         
         /*Заставляем систему сбросить все данные из кэша в файл*/
         fflush(dstFile);
+        
+        
+        /*TEMP*/        
+       
+        VideoFileFragment v;
+//        v.beginPos=1;
+//        v.begintTime=2;
+//        v.endPos=3;
+//        v.endTime=4;
+       
+       // v={1,2,3,4};
+        
+//        struct FromFF {
+//    int index;
+//    char filename[128];
+//    long double start;
+//    float duration;
+//    long double end;
+//    char source_dir[512];
+//    char camname[32];
+//};
+
+        
+        
+        
+        currentChannel.videoFragments.push_back(new VideoFileFragment(1,2,3,4));
+        //VideoFileFragment vv={1,2,3,4};
+        //currentChannel.fragments().push_back(v);
+        /*TEMP*/
         
 
         /*Удаляем файл фрагмента, так как всё содержимое уже в памяти*/
