@@ -4,8 +4,16 @@
     <logicalFolder name="SourceFiles"
                    displayName="Исходные файлы"
                    projectFiles="true">
-      <itemPath>Channel.cpp</itemPath>
-      <itemPath>VideoFileFragment.cpp</itemPath>
+      <logicalFolder name="f3" displayName="Classes" projectFiles="true">
+        <logicalFolder name="f1" displayName="Channel" projectFiles="true">
+          <itemPath>Channel.cpp</itemPath>
+          <itemPath>Channel.hpp</itemPath>
+        </logicalFolder>
+        <logicalFolder name="f2" displayName="VideoFileFragment" projectFiles="true">
+          <itemPath>VideoFileFragment.cpp</itemPath>
+          <itemPath>VideoFileFragment.hpp</itemPath>
+        </logicalFolder>
+      </logicalFolder>
       <itemPath>main.cpp</itemPath>
       <itemPath>network.cpp</itemPath>
       <itemPath>printer.cpp</itemPath>
@@ -13,8 +21,6 @@
     <logicalFolder name="HeaderFiles"
                    displayName="Файлы заголовков"
                    projectFiles="true">
-      <itemPath>Channel.hpp</itemPath>
-      <itemPath>VideoFileFragment.hpp</itemPath>
       <itemPath>ms.hpp</itemPath>
       <itemPath>printer.hpp</itemPath>
       <itemPath>terminal_control.hpp</itemPath>

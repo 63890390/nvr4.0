@@ -14,6 +14,9 @@
 #ifndef TERMINAL_CONTROL_HPP
 #define TERMINAL_CONTROL_HPP
 
+#include <cstdio>
+
+
 #define ESC "\033"
 
 //Format text
@@ -47,13 +50,47 @@
 #define B_WHITE		47
 
 
+#define columnsize 20
+#define column1 1
+#define column2 column1+columnsize
+#define column3 column2+columnsize
+#define column4 column3+columnsize
+#define column5 column4+columnsize
+#define column6 column5+columnsize
+#define column7 column6+columnsize
+#define column8 column7+columnsize
+#define column9 column8+columnsize
+#define column10 column9+columnsize
+#define column11 column10+columnsize
+#define column12 column11+columnsize
+#define column13 column12+columnsize
+#define column14 column13+columnsize
+#define column15 column14+columnsize
+#define column16 column15+columnsize
+#define column17 column16+columnsize
+#define column18 column17+columnsize
+#define column19 column18+columnsize
+#define column20 column19+columnsize
+
+
+#define savecursor()            printf(ESC "[s");
+#define restorcurcor()          printf(ESC "[u");
+#define obr()                   printf(ESC "[51m");
 #define home() 			printf(ESC "[H") //Move cursor to the indicated row, column (origin at 1,1)
 #define clrscr()		printf(ESC "[2J") //lear the screen, move to (1,1)
-#define gotoxy(x,y)		printf(ESC "[%lu;%luH", (long unsigned int)y, (long unsigned int)x);
-#define visible_cursor() printf(ESC "[?251");
+#define gotoxy(x,y)		printf(ESC "[%lu;%luH", (long unsigned int)y, (long unsigned int)x); for(int i=0;i<columnsize;i++)putchar(' '); printf(ESC "[%lu;%luH", (long unsigned int)y, (long unsigned int)x);
+#define visible_cursor()        printf(ESC "[?25h");
+#define invisible_cursor()      printf(ESC "[?25l");
 //Set Display Attribute Mode	<ESC>[{attr1};...;{attrn}m
 #define resetcolor() printf(ESC "[0m")
 #define set_display_atrib(color) 	printf(ESC "[%dm",color)
+#define COLOR(f,b)		printf(ESC "[%d;%dm",f,b);
+
+
+
+
+#define currentaction() gotoxy(1,19); set_display_atrib(0);cout << "Last action: "; printf(ESC "[0K");  
+#define lasterror gotoxy(1,20);     set_display_atrib(31); cerr << "Last  error: "; printf(ESC "[0K"); 
 
 #endif /* TERMINAL_CONTROL_HPP */
 

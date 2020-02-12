@@ -33,6 +33,7 @@
 #include "printer.hpp"
 #include "Channel.hpp"
 #include "VideoFileFragment.hpp"
+const int displaytime=1;//000000;
 
 
 
@@ -45,7 +46,7 @@ bool stopProgramm = false;
 
 /*действия которые будут происходить при получении сигнала*/
 void term_handler(int i) {
-    cout << "Экстренный выход из программы.\r\n";
+    lasterror; cerr << "Экстренный выход из программы. по коду " << i << "\r\n";
     stopProgramm = true;
 }
 
@@ -53,12 +54,12 @@ void term_handler(int i) {
 void setExitFunction() {
     struct sigaction sa;
     sigset_t newset;
-    sigemptyset(&newset);
-    sigaddset(&newset, SIGHUP);
-    sigprocmask(SIG_BLOCK, &newset, 0);
-    sa.sa_handler = term_handler;
-    sigaction(SIGTERM, &sa, 0);
-    sigaction(SIGINT, &sa, 0);
+    sigemptyset(&newset);// чистимся
+    sigaddset(&newset, SIGHUP);// добавляем сигнал SIGHUP
+    sigprocmask(SIG_BLOCK, &newset, 0);// блокируем его
+    sa.sa_handler = term_handler;// указываем обработчик
+    sigaction(SIGTERM, &sa, 0);// обрабатываем сигнал SIGTERM
+    sigaction(SIGINT, &sa, 0);// обрабатываем сигнал SIGTERM
 }
 
 
@@ -86,25 +87,25 @@ bool NetInit(int& mainSocket, const int& incomingPort, int countReconect, int ti
     serv_addr.sin_family = AF_INET;
     serv_addr.sin_addr.s_addr = INADDR_ANY;
     serv_addr.sin_port = htons(incomingPort);
+    if (setsockopt(mainSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof (int)) < 0)
+        goto end;    
     for (; bind(mainSocket, (struct sockaddr *) &serv_addr, sizeof (serv_addr)) < 0; count++)
     {
         if (stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.
-        if (count == 0) cerr << "Warning: Bind fail - " << strerror(errno) << "\r\n" << "Retrying...";
+        if (count == 0) {lasterror; cerr << "Warning: Bind fail - " << strerror(errno)  << "Retrying...";}
         else putchar('.');
         if (count > countReconect * 10)
             goto end;
         std::this_thread::sleep_for(std::chrono::milliseconds(timePeriodReconect * 100));
     }
-    if (setsockopt(mainSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof (int)) < 0)
-        goto end;
     if (listen(mainSocket, SOMAXCONN) == -1)
         goto end;
     if (count > 0)
-        cout << "OK\r\n";
+        {currentaction(); cout << "Net initialization OK\r\n";usleep(displaytime);}
     return false;
 end:
     if (count > 0)
-        cout << "OK\r\n";
+        {currentaction(); cout << "Net initialization OK\r\n";usleep(displaytime);}
     if (mainSocket != -1)
         close(mainSocket);
     return true;
@@ -132,9 +133,9 @@ bool ResiveFromFF(const int &connectedSocket, FromFF &resivedData, size_t buffer
     return false;
 }
 
-bool FindChannelId(char *channelName, const map<int, Channel>& channels, int& channelId) {
-    auto result = find_if(channels.begin(), channels.end(), [channelName](const pair<int, Channel> & item) {
-        return strcmp(item.second.name, channelName) == 0;
+bool FindChannelId(char *channelName, const map<int, Channel*>& channels, int& channelId) {
+    auto result = find_if(channels.begin(), channels.end(), [channelName](const pair<int, Channel*> & item) {
+        return strcmp(item.second->name, channelName) == 0;
     });
     if (result == channels.end())
         channelId = -1;
@@ -143,12 +144,10 @@ bool FindChannelId(char *channelName, const map<int, Channel>& channels, int& ch
     return false;
 }
 
-bool AddChannel(const FromFF &resived, map<int, Channel>& channels, int& channelId) {
+bool AddChannel(const FromFF &resived, map<int, Channel*>& channels, int& channelId) {
     channelId = channels.size() + 1; //прибавим единицу, для того чтобы 0 оставался в резерве.
-    Channel newChannel;
-    newChannel.firstStart = resived.start;
-    strcpy(newChannel.name, resived.camname);
-    pair < map<int, Channel>::iterator, bool> result = channels.emplace(channelId, newChannel);
+    Channel *newChannel = new Channel(resived.start,resived.camname);
+    pair < map<int, Channel*>::iterator, bool> result = channels.emplace(channelId, newChannel);
     return !result.second;
 }
 
@@ -180,11 +179,11 @@ int DeleteOldFiles(fs::path & archiveDir, string & currentPrefix) {
         fs::directory_entry f = *(v.begin());
         if (f.path().stem() != currentPrefix)
         {
-            cout << "removing " << f.path().native() << "\r\n";
+            currentaction(); cout << "removing " << f.path().native() << "\r\n";usleep(displaytime);
             fs::remove(*v.begin());
         } else
         {
-            cout << "can't remove file becose file is current\r\n";
+            lasterror; cerr  << "can't remove file becose file is current\r\n";
             return -2;
         }
     }
@@ -218,20 +217,24 @@ bool CreateNewDstFile(FILE* &dstFile, string &curPrefix, fs::path &currentDstFil
 }
 
 int main(int argc, char** argv) {
+    
 
+    int color=30;
     /*Включаем отлавливание прерывание программы*/
     setExitFunction();
 
     /*Выключаем буффер потоков вывода*/
     SetBuffer();
-    system("setterm -cursor off");
+    invisible_cursor();   
+    clrscr();    
+    //system("setterm -cursor off >/dev/null");
     int mainErrorCode = 0; //Ерор код при выходе из приложения
     const int incomingTcpPort = 6000; //Входящий порт для подключений FF
     const int countReconect = 10; //Количество попыток переподключений
     const int timePeriodReconect = 10; //Время очерез которое повторяются попытки переподключений
     int mainSocket = -1; //Создаём главный сокет для ожидания подключения
     FILE * fChannelList = NULL; //Файл в котором находиться информация о списке каналов(имя канала, номер, время первой записи)    
-    map<int, Channel> channels; //список каналов
+    map<int, Channel*> channels; //список каналов
     int connectedSocket = -1; //подчинёный сокет для соеденившегося FF    
 
     /*Минимальное свободное которое всегда должно быть.*/
@@ -248,9 +251,7 @@ int main(int argc, char** argv) {
 
     /*Путь к директрии с архивом*/
     fs::path recordDir = "/var/www/video/archive/record";
-    gotoxy(1, 1);
-    cout << "DIR: " << recordDir.string() << "\r\n";
-    gotoxy(1, 10);
+    gotoxy(column1, 1); COLOR(43,30); cout << "DIR: " ;COLOR(40,33);cout << recordDir.string() << "\r\n";set_display_atrib(0);
     /*текущая приставка к имени файлов индекса и видеоданных равнвна времени создания пары файлов*/
     string curPrefix;
 
@@ -278,96 +279,101 @@ int main(int argc, char** argv) {
     /*текущий номер канала с которым работаем*/
     int currentChannelId = -1;
 
-
+    currentaction(); cout << "Updating prefix";usleep(displaytime);
     if (UpdatePrefix(curPrefix))
     {
-        cerr << "Error update prefix\r\n";
+        lasterror; cerr << "Error update prefix\r\n";
         goto end;
     }
 
 
     //инициализируем сеть для подключения ffmpeg-ов
-    //cout << "инициализируем сеть для подключения ffmpeg-ов" << "\r\n";
+    currentaction(); cout << "Инициализируем сеть для подключения ffmpeg-ов";usleep(displaytime);
     if (NetInit(mainSocket, incomingTcpPort, countReconect, timePeriodReconect))
     {
         if (stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.        
-        cerr << "Ошибка инициализации сети.\r\n";
+        lasterror; cerr << "Ошибка инициализации сети.\r\n";
         mainErrorCode = 1;
         goto end;
     }
 
 
     /* основной цикл:*/
-    //cout << "Ждём данные..." << "\r\n";
+    currentaction(); cout << "Ждём данные..." ;usleep(displaytime);
     while (!stopProgramm)
     {
-        //home();
         /*Проверим минимальное доступное место, если размер превышен то пробуем освободить место удаляя самые старые данные*/
+        currentaction(); cout << "Проверяемдоступное место" ;usleep(displaytime);
         currentAvailableSpace = fs::space(recordDir, ec).available;
         if (ec.value())
         {
-            cerr << "Ошибка проверки доступного места: " << ec.message() << "\r\n";
+            lasterror; cerr << "Ошибка проверки доступного места: " << ec.message() << "\r\n";
             mainErrorCode = 2;
             goto end;
         }
-        gotoxy(1, 2);
-        cout << "Доступно: " << ms(currentAvailableSpace) << " ";
-        cout << "Минимум: " << ms(minFreeSpace) << "                  \r\n";
+        gotoxy(column1, 2);COLOR(43,30);cout << "Доступно: " ; COLOR(40,33);cout << ms(currentAvailableSpace) << "\r\n" ;
+        gotoxy(column2, 2);cout << "Минимум: " << ms(minFreeSpace) << "\r\n";resetcolor();
 
         if (currentAvailableSpace < minFreeSpace)
             if (DeleteOldFiles(recordDir, curPrefix))
             {
-                cerr << "Ошибка при удалении самых старых файлов\r\n";
+                lasterror; cerr << "Ошибка при удалении самых старых файлов\r\n";
             }
 
 
 
 
         /* ждём входящие соеденения*/
+        currentaction(); cout << "Ожидаем входящее соеденение" ;usleep(displaytime);
         if (WaitConnetion(mainSocket, connectedSocket))
         {
             if (stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.
-            cerr << "Ошибка во время ожидания соеденения.\r\n";
+            lasterror; cerr << "Ошибка во время ожидания соеденения.\r\n";
             mainErrorCode = 3;
             goto end;
         }
 
 
         /*получаем данные от FF*/
+        currentaction(); cout << "Получаем данные от FFMpeg" ;usleep(displaytime);
         if (ResiveFromFF(connectedSocket, recivedDataFF, 1000))
         {
             if (stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.
-            cerr << "Ошибка принятия данных от FF.\r\n";
+            lasterror; cerr << "Ошибка принятия данных от FF.\r\n";
             mainErrorCode = 4;
             goto end;
         }
+        
         /*Закрываем сокет клиента*/
+        currentaction(); cout << "Закрываем сокет клиента" ;usleep(displaytime);
         close(connectedSocket);
         connectedSocket = -1;
 
         /*нужно проверить есть ли такой канал уже в списке наших каналов*/
+        currentaction(); cout << "Проверяем есть ли такой канал в списке" ;usleep(displaytime);
         if (FindChannelId(recivedDataFF.camname, channels, currentChannelId))
         {
-            cerr << "Ошибка поиска канала в списке каналов. " << recivedDataFF.camname << "\r\n";
+            lasterror; cerr << "Ошибка поиска канала в списке каналов. " << recivedDataFF.camname << "\r\n";
             mainErrorCode = 5;
             goto end;
         }
 
         /*проверяем если номер канала -1 то добавляем его в список*/
-        if (currentChannelId == -1 && AddChannel(recivedDataFF, channels, currentChannelId))
-        {
-            cerr << "Ошибка добавления канала в список каналов. " << recivedDataFF.camname << "\r\n";
-            mainErrorCode = 6;
-            goto end;
+        if (currentChannelId == -1){
+            currentaction(); cout << "Добавляем " << recivedDataFF.camname <<" в список каналов." ;usleep(displaytime);
+            if(AddChannel(recivedDataFF, channels, currentChannelId))
+                {
+                lasterror;cerr << "Ошибка добавления канала в список каналов. " << recivedDataFF.camname << "\r\n";
+                mainErrorCode = 6;
+                goto end;
+                }
         }
 
         /*Текущий канал*/
-        Channel & currentChannel = channels.at(currentChannelId);
-        gotoxy(1, 4+currentChannelId)cout << "Номер канала: " << currentChannelId << "                  ";
-        gotoxy(20, 4+currentChannelId);
-        cout << "Name: " << currentChannel.name << "                   ";
-        gotoxy(50, 4+currentChannelId);
-        cout << "File: " << recivedDataFF.filename << "                   \r\n";
+        Channel * currentChannel = channels.at(currentChannelId);
+        gotoxy(column1, 4+currentChannelId)cout << "Номер канала: " << currentChannelId << "\r\n";
+        gotoxy(column2, 4+currentChannelId);cout << "Name: " << currentChannel->name << "\r\n";
+        gotoxy(column3, 4+currentChannelId);cout << "File: " << recivedDataFF.filename << "\r\n";
 
         /*Читаем фрагмент в память*/
 
@@ -379,28 +385,31 @@ int main(int argc, char** argv) {
 
 
         /*Проверяем существует ли такой файл*/
+        currentaction(); cout << "Проверяем существует ли файл " << currentSourseFile ;usleep(displaytime);
         if (!fs::exists(currentSourseFile))
         {
-            cerr << "Ошибка: файл " << currentSourseFile << " не существует.\r\n";
+            lasterror;cerr << "Ошибка: файл " << currentSourseFile << " не существует.\r\n";
             continue;
         }
 
         /*Смотрим размер в байтах файла сегмента видео данных*/
+        currentaction(); cout << "Смотрим размер в байтах файла сегмента видео данных";usleep(displaytime);
         currentSrcSize = fs::file_size(currentSourseFile);
-        gotoxy(90, 4+currentChannelId);
-        cout << "Size: " << ms(currentSrcSize) << "                                \r\n";
+        gotoxy(column5, 4+currentChannelId);cout << "Size: " << ms(currentSrcSize) << "\r\n";
 
         /*Выделяем место в оперативной памяти для загрузки всего файла*/
         char buffer[currentSrcSize];
 
 
         /*Открываем файл для чтения*/
+        currentaction(); cout << "Открываем файл для чтения";usleep(displaytime);
         FILE * srcFile = fopen(currentSourseFile.c_str(), "r");
 
         /*Читаем содержимое в память*/
+        currentaction(); cout << "Читаем содержимое в память";usleep(displaytime);
         if (fread(buffer, currentSrcSize, 1, srcFile) != 1)
         {
-            cerr << "Ошибка при чтении файла " << currentSourseFile << "\r\n";
+            lasterror;cerr << "Ошибка при чтении файла " << currentSourseFile << " ";
             cerr << strerror(errno) << "\r\n";
             fclose(srcFile);
             srcFile = NULL;
@@ -408,6 +417,7 @@ int main(int argc, char** argv) {
         }
 
         /*Закрываем файл фрагмента*/
+        currentaction(); cout << "Закрываем файл фрагмента";usleep(displaytime);
         fclose(srcFile);
 
 
@@ -415,64 +425,40 @@ int main(int argc, char** argv) {
 
 
         /*Проверяем открыт ли текущий большой файл видеоданных*/
+        currentaction(); cout << "Проверяем открыт ли текущий большой файл видеоданных, и не превышает ли он заданный размер";usleep(displaytime);
         if (dstFile == NULL || (currentDstSize+currentSrcSize) >= maxFileSize)
         {
+            currentaction(); cout << "Создаём новый большой файл видеоданных" ;usleep(displaytime);
             if (CreateNewDstFile(dstFile, curPrefix, currentDstFile, recordDir))
             {
-                cerr << "Ошибка создания файла\r\n";
+                lasterror;cerr << "Ошибка создания файла\r\n";
             }
         }
 
         /*Пишем в файл данные которые мы считали ранее*/
+        currentaction(); cout << "Пишем в файл данные которые мы считали ранее" ;usleep(displaytime);
         if (fwrite(buffer, currentSrcSize, 1, dstFile) != 1)
         {
-            cerr << "Ошибка записи данных в файл видеоданных: " << strerror(errno) << "\r\n";
+            lasterror;cerr << "Ошибка записи данных в файл видеоданных: " << strerror(errno) << "\r\n";
             fclose(dstFile);
             dstFile = NULL;
             continue;
         }
         currentDstSize = fs::file_size(currentDstFile);
-        gotoxy(1, 3);
-        cout << "Data-File:" << currentDstFile.filename().string() << "                      \r\n";
-        gotoxy(50, 3); 
-        cout << "Max size:"<<ms(maxFileSize) << "         \r\n";
-        gotoxy(90, 3);
-        cout << "Size:" << ms(currentDstSize) << "       \r\n";
+        gotoxy(column1, 3);cout << "Data-File:" << currentDstFile.filename().string() << "\r\n";
+        gotoxy(column3, 3);cout << "Max size:"<<ms(maxFileSize) << "\r\n";
+        gotoxy(column4, 3);cout << "Size:" << ms(currentDstSize) << "\r\n";
         
         /*Заставляем систему сбросить все данные из кэша в файл*/
+        currentaction(); cout << "Заставляем систему сбросить все данные из кэша в файл" ;usleep(displaytime);
         fflush(dstFile);
         
-        
-        /*TEMP*/        
-       
-        VideoFileFragment v;
-//        v.beginPos=1;
-//        v.begintTime=2;
-//        v.endPos=3;
-//        v.endTime=4;
-       
-       // v={1,2,3,4};
-        
-//        struct FromFF {
-//    int index;
-//    char filename[128];
-//    long double start;
-//    float duration;
-//    long double end;
-//    char source_dir[512];
-//    char camname[32];
-//};
-
-        
-        
-        
-        currentChannel.videoFragments.push_back(new VideoFileFragment(1,2,3,4));
-        //VideoFileFragment vv={1,2,3,4};
-        //currentChannel.fragments().push_back(v);
-        /*TEMP*/
-        
+                
+        currentChannel->AddVideoFileFragment(new VideoFileFragment(1,2,3,4));
+        gotoxy(column6, 4+currentChannelId);cout << "Фрагментов:" << currentChannel->Count() <<"   \r\n";
 
         /*Удаляем файл фрагмента, так как всё содержимое уже в памяти*/
+        currentaction(); cout << "Удаляем файл фрагмента, так как всё содержимое уже в памяти" ;usleep(displaytime);
         fs::remove(currentSourseFile);
 
     }
@@ -481,17 +467,22 @@ int main(int argc, char** argv) {
     /* Выход */
 end:
     /*Закрываем подчинённый сокет*/
+    currentaction(); cout << "Закрываем подчинённый сокет" ;usleep(displaytime);
     if (connectedSocket != -1)
         close(connectedSocket);
     if (mainSocket != -1)
         close(mainSocket);
     /*Закрываем файл видеоданных если он открыт*/
+    currentaction(); cout << "Закрываем файл видеоданных если он открыт" ;usleep(displaytime);
     if (dstFile != NULL)
     {
         fflush(dstFile);
         fclose(dstFile);
         dstFile = NULL;
     }
+    visible_cursor();
+    set_display_atrib(0);
+    gotoxy(1,30);
     return mainErrorCode;
 }
 
