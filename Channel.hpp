@@ -20,15 +20,15 @@
 #include "VideoFileFragment.hpp"
 class Channel {
 public:
-    Channel(const std::uintmax_t firstStart, const char name[]);
+    Channel(const long double firstStart, const char name[]);
     virtual ~Channel();
     
     char name[32]={0,};
-    std::uintmax_t firstStart;
+    long double firstStart;
     bool AddVideoFileFragment(VideoFileFragment *);
     size_t Count();
-private:
     std::vector<VideoFileFragment *> *videoFragments;
+private:
 
 };
 

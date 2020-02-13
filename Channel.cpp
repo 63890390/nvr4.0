@@ -2,7 +2,7 @@
 #include <string.h>
 #include <algorithm>
 
-Channel::Channel(const std::uintmax_t firstStart, const char name[]) {
+Channel::Channel(const long double firstStart, const char name[]) {
     this->firstStart = firstStart;
     strncpy(this->name,name,sizeof(this->name));
     videoFragments = new std::vector<VideoFileFragment*>();

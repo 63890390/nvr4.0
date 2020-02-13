@@ -38,6 +38,7 @@ OBJECTFILES= \
 	${OBJECTDIR}/Channel.o \
 	${OBJECTDIR}/VideoFileFragment.o \
 	${OBJECTDIR}/main.o \
+	${OBJECTDIR}/metadataWriter.o \
 	${OBJECTDIR}/network.o \
 	${OBJECTDIR}/printer.o
 
@@ -80,6 +81,11 @@ ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+
+${OBJECTDIR}/metadataWriter.o: metadataWriter.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/metadataWriter.o metadataWriter.cpp
 
 ${OBJECTDIR}/network.o: network.cpp
 	${MKDIR} -p ${OBJECTDIR}
