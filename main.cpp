@@ -33,7 +33,7 @@
 #include "printer.hpp"
 #include "Channel.hpp"
 #include "VideoFileFragment.hpp"
-const int displaytime=1;//000000;
+const int displaytime=0;//000000;
 
 
 
@@ -46,6 +46,7 @@ bool stopProgramm = false;
 
 /*действия которые будут происходить при получении сигнала*/
 void term_handler(int i) {
+    
     lasterror; cerr << "Экстренный выход из программы. по коду " << i << "\r\n";
     stopProgramm = true;
 }
@@ -278,6 +279,11 @@ int main(int argc, char** argv) {
 
     /*текущий номер канала с которым работаем*/
     int currentChannelId = -1;
+    
+    /*Данные о текущем фидеофрагменте который должен быть в большом файле*/
+    VideoFileFragment * currentVideoFragment = NULL;
+    
+    uintmax_t currentStartPosIBigFile = 0;
 
     currentaction(); cout << "Updating prefix";usleep(displaytime);
     if (UpdatePrefix(curPrefix))
@@ -434,7 +440,10 @@ int main(int argc, char** argv) {
                 lasterror;cerr << "Ошибка создания файла\r\n";
             }
         }
-
+        
+        /*Выясняем текущий размер большого файла, он же старт текущего сегмента в нем*/
+        currentDstSize = currentStartPosIBigFile = fs::file_size(currentDstFile);
+                
         /*Пишем в файл данные которые мы считали ранее*/
         currentaction(); cout << "Пишем в файл данные которые мы считали ранее" ;usleep(displaytime);
         if (fwrite(buffer, currentSrcSize, 1, dstFile) != 1)
@@ -444,7 +453,7 @@ int main(int argc, char** argv) {
             dstFile = NULL;
             continue;
         }
-        currentDstSize = fs::file_size(currentDstFile);
+        currentDstSize += currentSrcSize;
         gotoxy(column1, 3);cout << "Data-File:" << currentDstFile.filename().string() << "\r\n";
         gotoxy(column3, 3);cout << "Max size:"<<ms(maxFileSize) << "\r\n";
         gotoxy(column4, 3);cout << "Size:" << ms(currentDstSize) << "\r\n";
@@ -453,13 +462,21 @@ int main(int argc, char** argv) {
         currentaction(); cout << "Заставляем систему сбросить все данные из кэша в файл" ;usleep(displaytime);
         fflush(dstFile);
         
-                
-        currentChannel->AddVideoFileFragment(new VideoFileFragment(1,2,3,4));
-        gotoxy(column6, 4+currentChannelId);cout << "Фрагментов:" << currentChannel->Count() <<"   \r\n";
+
 
         /*Удаляем файл фрагмента, так как всё содержимое уже в памяти*/
         currentaction(); cout << "Удаляем файл фрагмента, так как всё содержимое уже в памяти" ;usleep(displaytime);
         fs::remove(currentSourseFile);
+        
+        
+        
+        /*Создаём структуру с данными о видеоврагменте*/
+        currentVideoFragment = new VideoFileFragment(recivedDataFF.start,recivedDataFF.end,currentStartPosIBigFile,currentSrcSize);
+        
+        
+        
+        currentChannel->AddVideoFileFragment(currentVideoFragment);
+        gotoxy(column6, 4+currentChannelId);cout << "Фрагментов:" << currentChannel->Count() <<"   \r\n";
 
     }
 

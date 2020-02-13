@@ -18,13 +18,13 @@
 class VideoFileFragment {
 public:
     VideoFileFragment();
-    VideoFileFragment(std::uintmax_t begintTime, std::uintmax_t endTime, std::uintmax_t beginPos, std::uintmax_t endPos);
+    VideoFileFragment(long double begintTime, long double endTime, std::uintmax_t beginPos, std::uintmax_t size);
     VideoFileFragment(const VideoFileFragment& orig);
     virtual ~VideoFileFragment();
-    std::uintmax_t begintTime = 0;
-    std::uintmax_t endTime = 0;
+    long double begintTime = 0;
+    long double endTime = 0;
     std::uintmax_t beginPos = 0;
-    std::uintmax_t endPos = 0;
+    std::uintmax_t size = 0;
 private:
 
 };

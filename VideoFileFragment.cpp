@@ -16,11 +16,11 @@
 VideoFileFragment::VideoFileFragment() {
 }
 
-VideoFileFragment::VideoFileFragment(std::uintmax_t begintTime, std::uintmax_t endTime, std::uintmax_t beginPos, std::uintmax_t endPos) {
+VideoFileFragment::VideoFileFragment(long double begintTime, long double endTime, std::uintmax_t beginPos, std::uintmax_t size) {
     this->begintTime = begintTime;
     this->endTime = endTime;
     this->beginPos = beginPos;
-    this->endPos = endPos;
+    this->size = size;
 }
 
 VideoFileFragment::VideoFileFragment(const VideoFileFragment& orig) {
