@@ -18,7 +18,7 @@ uintmax_t Channel::Count(){
 }
 
 Channel::~Channel() {
-    for(auto &it : *videoFragments){
+    for(auto &it : *videoFragments){        
         delete it;
     }
 };

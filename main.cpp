@@ -208,21 +208,23 @@ int DeleteOldFiles(fs::path & archiveDir, string & currentPrefix) {
 bool CloseExistingDstFile(FILE* &dstFile, map<int, Channel*> &channels) {
     if (dstFile == NULL)
         return true;
+    std::uintmax_t i = 0;
+    std::uintmax_t j = 0;
     metadataWriter writer;
     writer.version = 1;
     writer.channelCount = channels.size();
-
     writer.channels = (metadataWriter::channel*)malloc(sizeof (metadataWriter::channel) * writer.channelCount);
-    int i = 0;
+
+    i = 0;
     for (const auto &ch : channels)
     {
         writer.channels[i].firstStart = ch.second->firstStart;
         writer.channels[i].fragmentCount = ch.second->Count();
-        writer.channels[i].fragments = (metadataWriter::channel::fragment*)malloc(sizeof(metadataWriter::channel::fragment)*writer.channels[i].fragmentCount);
-        std::uintmax_t j=0;    
-        for(const auto &fr : *(ch.second->videoFragments))
+        writer.channels[i].fragments = (metadataWriter::channel::fragment*)malloc(sizeof (metadataWriter::channel::fragment) * writer.channels[i].fragmentCount);
+
+        j = 0;
+        for (const auto &fr : *(ch.second->videoFragments))
         {
-            printf("%Lf\t",fr->begintTime);     
             writer.channels[i].fragments[j].duration = fr->begintTime - fr->endTime;
             writer.channels[i].fragments[j].startTime = fr->begintTime;
             writer.channels[i].fragments[j].pozition = fr->beginPos;
@@ -233,6 +235,64 @@ bool CloseExistingDstFile(FILE* &dstFile, map<int, Channel*> &channels) {
         i++;
     }
 
+
+    /*Дописываем все в конец*/
+
+    //Записываем текущую позицию в файле    
+    fseeko64(dstFile, 0, SEEK_END);
+    auto p1 = ftello64(dstFile);
+
+    /*записываем версию метаданных*/
+    fwrite(&writer.version, sizeof (writer.version), 1, dstFile);
+    /*записываем количество каналов в файле*/
+    fwrite(&writer.channelCount, sizeof (writer.channelCount), 1, dstFile);
+
+
+
+
+    auto p2 = ftello64(dstFile);
+    for (int i = 0; i < writer.channelCount; i++)
+    {
+        fwrite(&writer.channels[i].number, sizeof (writer.channels[i].number), 1, dstFile);
+        fwrite(&writer.channels[i].firstStart, sizeof (writer.channels[i].firstStart), 1, dstFile);
+        fwrite(&writer.channels[i].fragmentCount, sizeof (writer.channels[i].fragmentCount), 1, dstFile);
+        fwrite(&writer.channels[i].startPosFirstFragment, sizeof (&writer.channels[i].startPosFirstFragment), 1, dstFile);
+    }
+
+    auto p3 = ftello64(dstFile);
+    for (int i = 0; i < writer.channelCount; i++)
+    {
+        writer.channels[i].startPosFirstFragment = ftello64(dstFile);
+        for (int j = 0; j < writer.channels[i].fragmentCount; j++)
+        {
+            fwrite(&writer.channels[i].fragments[j].startTime, sizeof (writer.channels[i].fragments[j].startTime), 1, dstFile);
+            fwrite(&writer.channels[i].fragments[j].pozition, sizeof (writer.channels[i].fragments[j].pozition), 1, dstFile);
+            fwrite(&writer.channels[i].fragments[j].size, sizeof (writer.channels[i].fragments[j].size), 1, dstFile);
+        }
+    }
+    auto p4 = ftello64(dstFile);
+
+    fseeko(dstFile, p2, SEEK_SET);
+    for (int i = 0; i < writer.channelCount; i++)
+    {
+        fwrite(&writer.channels[i].number, sizeof (writer.channels[i].number), 1, dstFile);
+        fwrite(&writer.channels[i].firstStart, sizeof (writer.channels[i].firstStart), 1, dstFile);
+        fwrite(&writer.channels[i].fragmentCount, sizeof (writer.channels[i].fragmentCount), 1, dstFile);
+        fwrite(&writer.channels[i].startPosFirstFragment, sizeof (&writer.channels[i].startPosFirstFragment), 1, dstFile);
+    }
+
+
+    fseeko(dstFile, p4, SEEK_SET);
+    auto s = sizeof (p1);
+    fwrite(&p1, s, 1, dstFile);
+
+    unsigned char okByte = 85;
+    for(int ji = 0; ji < 65000; ji++)
+        fwrite(&okByte, sizeof (okByte), 1, dstFile);
+
+    fflush(dstFile);
+    fclose(dstFile);
+    dstFile = NULL;
 
     return false;
 }

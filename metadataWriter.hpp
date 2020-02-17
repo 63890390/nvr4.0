@@ -19,24 +19,27 @@
 class metadataWriter {
 public:
     metadataWriter();
-    metadataWriter(const metadataWriter& orig);
+    //    metadataWriter(const metadataWriter& orig);
     virtual ~metadataWriter();
 
-    int version;
-    int channelCount;
+    int version = 1;
+    int channelCount = 0;
+
     struct channel {
-        int number;
-        long double firstStart;
-        std::uintmax_t fragmentCount;
+        int number = 0;
+        long double firstStart = 0;
+        std::uintmax_t fragmentCount = 0;
+        std::uintmax_t startPosFirstFragment = 0;
+
         struct fragment {
-            long double startTime;
-            std::uintmax_t pozition;
-            std::uintmax_t size;
-            float duration;
-        } *fragments;
-    } *channels;
-    std::uintmax_t metaSize;
-private:    
+            long double startTime = 0;
+            std::uintmax_t pozition = 0;
+            std::uintmax_t size = 0;
+            float duration = 0;
+        } *fragments = nullptr;
+    } *channels = nullptr;
+    std::uintmax_t metaSize = 0;
+private:
 };
 
 #endif /* METADATAWRITER_HPP */

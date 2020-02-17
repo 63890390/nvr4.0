@@ -16,8 +16,8 @@
 metadataWriter::metadataWriter() {
 }
 
-metadataWriter::metadataWriter(const metadataWriter& orig) {
-}
+//metadataWriter::metadataWriter(const metadataWriter& orig) {
+//}
 
 metadataWriter::~metadataWriter() {
 }
