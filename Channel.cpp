@@ -13,7 +13,7 @@ bool Channel::AddVideoFileFragment(VideoFileFragment * fragment){
     return false;
 }
 
-size_t Channel::Count(){
+uintmax_t Channel::Count(){
     return videoFragments->size();
 }
 

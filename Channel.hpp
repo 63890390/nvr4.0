@@ -26,7 +26,7 @@ public:
     char name[32]={0,};
     long double firstStart;
     bool AddVideoFileFragment(VideoFileFragment *);
-    size_t Count();
+    uintmax_t Count();
     std::vector<VideoFileFragment *> *videoFragments;
 private:
 

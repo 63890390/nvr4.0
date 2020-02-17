@@ -219,9 +219,15 @@ bool CloseExistingDstFile(FILE* &dstFile, map<int, Channel*> &channels) {
         writer.channels[i].firstStart = ch.second->firstStart;
         writer.channels[i].fragmentCount = ch.second->Count();
         writer.channels[i].fragments = (metadataWriter::channel::fragment*)malloc(sizeof(metadataWriter::channel::fragment)*writer.channels[i].fragmentCount);
+        std::uintmax_t j=0;    
         for(const auto &fr : *(ch.second->videoFragments))
         {
-            printf("%Lf\t",fr->begintTime);                        
+            printf("%Lf\t",fr->begintTime);     
+            writer.channels[i].fragments[j].duration = fr->begintTime - fr->endTime;
+            writer.channels[i].fragments[j].startTime = fr->begintTime;
+            writer.channels[i].fragments[j].pozition = fr->beginPos;
+            writer.channels[i].fragments[j].size = fr->size;
+            j++;
         }
         cout << "\r\n";
         i++;
