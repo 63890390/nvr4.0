@@ -433,8 +433,12 @@ int main(int argc, char** argv) {
 
         /*Текущий канал*/
         Channel * currentChannel = channels.at(currentChannelId);
+        
+        /*если в канале нет данных о видеофрагментах то значит это будет первый 
+         * видеофрагмент и нам нужно записать его время старта которе потом запишем в большой файл*/
         if(currentChannel->videoFragments->empty()){
             currentChannel->firstStart = recivedDataFF.start;
+            
         }
         gotoxy(column1, 4 + currentChannelId)cout << "Номер канала: " << currentChannelId << "\r\n";
         gotoxy(column2, 4 + currentChannelId);
@@ -527,6 +531,8 @@ int main(int argc, char** argv) {
         if (currentDstSize + currentSrcSize >= maxFileSize)
         {
             MetaData::CloseExistingDstFile(dstFile, channels);
+            
+            /*Почистим экран*/
             for(int h=0;h<channels.size();h++){
                 gotoxy(column3,5+h);printf(ESC "[0K");
             }
