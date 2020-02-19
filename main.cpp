@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
     std::uintmax_t minFreeSpace = 1024 * 1024 * 1024 * 23LL;
 
     /*Максиммальный размер файла видеоданных*/
-    std::uintmax_t maxFileSize = 1024 * 1024 * 30LL;
+    std::uintmax_t maxFileSize = 1024 * 1024 * 50LL;
 
     /*структура  - Ерор код для работы с файловыми опирациями*/
     std::error_code ec;
