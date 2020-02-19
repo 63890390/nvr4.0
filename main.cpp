@@ -221,7 +221,7 @@ bool CreateNewDstFile(FILE* &dstFile, string &curPrefix, fs::path &currentDstFil
     currentDstFile += "/";
     currentDstFile += curPrefix;
     currentDstFile += ".data";
-    dstFile = fopen(currentDstFile.c_str(), "a+");
+    dstFile = fopen(currentDstFile.c_str(), "wb+");
     if (dstFile == NULL)
     {
         //cerr << "Ошибка создания файла видеоданных: " << strerror(errno) << "\r\n";
@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
     std::uintmax_t minFreeSpace = 1024 * 1024 * 1024 * 23LL;
 
     /*Максиммальный размер файла видеоданных*/
-    std::uintmax_t maxFileSize = 1024 * 1024 * 10LL;
+    std::uintmax_t maxFileSize = 1024 * 1024 * 30LL;
 
     /*структура  - Ерор код для работы с файловыми опирациями*/
     std::error_code ec;
@@ -427,9 +427,15 @@ int main(int argc, char** argv) {
                 goto end;
             }
         }
+        
+        
+        
 
         /*Текущий канал*/
         Channel * currentChannel = channels.at(currentChannelId);
+        if(currentChannel->videoFragments->empty()){
+            currentChannel->firstStart = recivedDataFF.start;
+        }
         gotoxy(column1, 4 + currentChannelId)cout << "Номер канала: " << currentChannelId << "\r\n";
         gotoxy(column2, 4 + currentChannelId);
         cout << "Name: " << currentChannel->name << "\r\n";
@@ -521,9 +527,13 @@ int main(int argc, char** argv) {
         if (currentDstSize + currentSrcSize >= maxFileSize)
         {
             MetaData::CloseExistingDstFile(dstFile, channels);
-
-            currentaction();
+            for(int h=0;h<channels.size();h++){
+                gotoxy(column3,5+h);printf(ESC "[0K");
+            }
+            
+            currentaction();            
             cout << "Создаём новый большой файл видеоданных";
+            sleep(1);
             usleep(displaytime);
             if (CreateNewDstFile(dstFile, curPrefix, currentDstFile, recordDir))
             {
