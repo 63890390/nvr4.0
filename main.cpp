@@ -34,23 +34,24 @@
 #include "Channel.hpp"
 #include "VideoFileFragment.hpp"
 #include "MetaData.hpp"
-const int displaytime = 0; //000000;
-
-
+#include "Settings.hpp"
+#include "DataFromFFMpeg.hpp"
+#include "StatusPrint.hpp"
+#include "Net.hpp"
 
 using namespace std;
 namespace fs = std::experimental::filesystem;
 
+Settings set;
+Net net(set);
 
-//глобальная переменная отвечающая за выход из программы
-bool stopProgramm = false;
-
-/*действия которые будут происходить при получении сигнала*/
+/*действия которые будут происходить при получении сигнала от ядра операционной системы*/
 void term_handler(int i) {
-
-    lasterror;
-    cerr << "Экстренный выход из программы. по коду " << i << "\r\n";
-    stopProgramm = true;
+    
+    char r[4];
+    sprintf(r,"%d",i);
+    PrintError("Экстренный выход из программы. по коду ",r,NULL);
+    set.stopProgramm = true;
 }
 
 /*регистрируем сигналы от системы на которые программа будет реагировать*/
@@ -65,85 +66,6 @@ void setExitFunction() {
     sigaction(SIGINT, &sa, 0); // обрабатываем сигнал SIGTERM
 }
 
-/*Структура которую передаёт FF*/
-struct FromFF {
-    int index;
-    char filename[128];
-    long double start;
-    float duration;
-    long double end;
-    char source_dir[512];
-    char camname[32];
-};
-
-bool NetInit(int& mainSocket, const int& incomingPort, int countReconect, int timePeriodReconect) {
-
-    struct sockaddr_in serv_addr;
-    int enable = 1;
-    int count = 0;
-    mainSocket = socket(AF_INET, SOCK_STREAM, 0);
-    if (mainSocket < 0)
-        goto end;
-    memset((char *) &serv_addr, 0, sizeof (serv_addr));
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = INADDR_ANY;
-    serv_addr.sin_port = htons(incomingPort);
-    if (setsockopt(mainSocket, SOL_SOCKET, SO_REUSEADDR, &enable, sizeof (int)) < 0)
-        goto end;
-    for (; bind(mainSocket, (struct sockaddr *) &serv_addr, sizeof (serv_addr)) < 0; count++)
-    {
-        if (stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.
-        if (count == 0)
-        {
-            lasterror;
-            cerr << "Warning: Bind fail - " << strerror(errno) << "Retrying...";
-        } else putchar('.');
-        if (count > countReconect * 10)
-            goto end;
-        std::this_thread::sleep_for(std::chrono::milliseconds(timePeriodReconect * 100));
-    }
-    if (listen(mainSocket, SOMAXCONN) == -1)
-        goto end;
-    if (count > 0)
-    {
-        currentaction();
-        cout << "Net initialization OK\r\n";
-        usleep(displaytime);
-    }
-    return false;
-end:
-    if (count > 0)
-    {
-        currentaction();
-        cout << "Net initialization OK\r\n";
-        usleep(displaytime);
-    }
-    if (mainSocket != -1)
-        close(mainSocket);
-    return true;
-}
-
-bool WaitConnetion(const int &mainSocket, int &connectedSocket) {
-    connectedSocket = accept(mainSocket, NULL, NULL);
-    if (connectedSocket < 0)
-        return true;
-    return false;
-}
-
-bool ResiveFromFF(const int &connectedSocket, FromFF &resivedData, size_t bufferSize) {
-    char buf[bufferSize];
-    size_t resivedByte;
-    resivedByte = read(connectedSocket, buf, bufferSize);
-    if (resivedByte == bufferSize || resivedByte == -1)
-        return true;
-    buf[resivedByte] = 0; //Добавим 0 для символа конца строки.
-    if (sscanf(buf,
-        "c:%s\ti:%d\tf:%s\ts:%Lf\td:%f\te:%Lf\tdir:%s",
-        resivedData.camname, &resivedData.index, resivedData.filename,
-        &resivedData.start, &resivedData.duration, &resivedData.end, resivedData.source_dir) == EOF)
-        return true;
-    return false;
-}
 
 bool FindChannelId(char *channelName, const map<int, Channel*>& channels, int& channelId) {
     auto result = find_if(channels.begin(), channels.end(), [channelName](const pair<int, Channel*> & item) {
@@ -156,7 +78,7 @@ bool FindChannelId(char *channelName, const map<int, Channel*>& channels, int& c
     return false;
 }
 
-bool AddChannel(const FromFF &resived, map<int, Channel*>& channels, int& channelId) {
+bool AddChannel(const DataFromFFMpeg &resived, map<int, Channel*>& channels, int& channelId) {
     channelId = channels.size() + 1; //прибавим единицу, для того чтобы 0 оставался в резерве.
     Channel *newChannel = new Channel(resived.start, resived.camname);
     pair < map<int, Channel*>::iterator, bool> result = channels.emplace(channelId, newChannel);
@@ -193,7 +115,7 @@ int DeleteOldFiles(fs::path & archiveDir, string & currentPrefix) {
         {
             currentaction();
             cout << "removing " << f.path().native() << "\r\n";
-            usleep(displaytime);
+            usleep(set.displaytime);
             fs::remove(*v.begin());
         } else
         {
@@ -232,10 +154,6 @@ bool CreateNewDstFile(FILE* &dstFile, string &curPrefix, fs::path &currentDstFil
 }
 
 int main(int argc, char** argv) {
-
-
-
-    int color = 30;
     /*Включаем отлавливание прерывание программы*/
     setExitFunction();
 
@@ -243,108 +161,59 @@ int main(int argc, char** argv) {
     SetBuffer();
     invisible_cursor();
     clrscr();
-    //system("setterm -cursor off >/dev/null");
     int mainErrorCode = 0; //Ерор код при выходе из приложения
-    const int incomingTcpPort = 6000; //Входящий порт для подключений FF
-    const int countReconect = 10; //Количество попыток переподключений
-    const int timePeriodReconect = 10; //Время очерез которое повторяются попытки переподключений
-    int mainSocket = -1; //Создаём главный сокет для ожидания подключения
     FILE * fChannelList = NULL; //Файл в котором находиться информация о списке каналов(имя канала, номер, время первой записи)    
-    map<int, Channel*> channels; //список каналов
-    int connectedSocket = -1; //подчинёный сокет для соеденившегося FF    
+    map<int, Channel*> channels; //список каналов 
+    error_code ec;     /*структура  - Ерор код для работы с файловыми опирациями*/
+    uintmax_t currentAvailableSpace = 0;/*Текущее свободное для использования место*/
+    string curPrefix;    /*текущая приставка к имени файлов индекса и видеоданных равнвна времени создания пары файлов*/
+    fs::path currentSourseFile;/*переменная содержащая в себе путь к текущему исходному обрабатываемому файлу с видеоданными*/
+    fs::path currentDstFile;/*переменная содержащая в себе путь к текущему большому файлу с видеоданными*/
+    uintmax_t currentSrcSize = 0;/*переменная содержащая размер в байтах исходного файла с видеоданными*/
+    uintmax_t currentDstSize = 0;/*переменная содержащая текущий размер в байтах большого файла с видеоданными*/
+    FILE * srcFile = NULL;/*переменная типа "файл" текущего исходного файла с видеоданными*/
+    FILE * dstFile = NULL;/*переменная типа "файл" текущего большого файла с видеоданными*/
+    DataFromFFMpeg recivedDataFF;/*Структура с данными полученными от FFMPEG-a*/
+    int currentChannelId = -1;/*текущий номер канала с которым работаем*/    
+    VideoFileFragment * currentVideoFragment = NULL;/*Данные о текущем фидеофрагменте который должен быть в большом файле*/
+    uintmax_t currentStartPosIBigFile = 0;
 
-    /*Минимальное свободное которое всегда должно быть.*/
-    std::uintmax_t minFreeSpace = 1024 * 1024 * 1024 * 23LL;
-
-    /*Максиммальный размер файла видеоданных*/
-    std::uintmax_t maxFileSize = 1024 * 1024 * 128LL;
-
-    /*структура  - Ерор код для работы с файловыми опирациями*/
-    std::error_code ec;
-
-    /*Текущее свободное для использования место*/
-    std::uintmax_t currentAvailableSpace = 0;
-
-    /*Путь к директрии с архивом*/
-    fs::path recordDir = "/var/www/video/archive/record";
     gotoxy(column1, 1);
     COLOR(43, 30);
     cout << "DIR: ";
     COLOR(40, 33);
-    cout << recordDir.string() << "\r\n";
+    cout << set.recordDir.string() << "\r\n";
     set_display_atrib(0);
-    /*текущая приставка к имени файлов индекса и видеоданных равнвна времени создания пары файлов*/
-    string curPrefix;
 
-    /*переменная содержащая в себе путь к текущему исходному обрабатываемому файлу с видеоданными*/
-    fs::path currentSourseFile;
-
-    /*переменная содержащая в себе путь к текущему большому файлу с видеоданными*/
-    fs::path currentDstFile;
-
-    /*переменная содержащая размер в байтах исходного файла с видеоданными*/
-    std::uintmax_t currentSrcSize = 0;
-
-    /*переменная содержащая текущий размер в байтах большого файла с видеоданными*/
-    std::uintmax_t currentDstSize = 0;
-
-    /*переменная типа "файл" текущего исходного файла с видеоданными*/
-    FILE * srcFile = NULL;
-
-    /*переменная типа "файл" текущего большого файла с видеоданными*/
-    FILE * dstFile = NULL;
-
-    /*Структура с данными полученными от FFMPEG-a*/
-    FromFF recivedDataFF;
-
-    /*текущий номер канала с которым работаем*/
-    int currentChannelId = -1;
-
-    /*Данные о текущем фидеофрагменте который должен быть в большом файле*/
-    VideoFileFragment * currentVideoFragment = NULL;
-
-    uintmax_t currentStartPosIBigFile = 0;
-
-    currentaction();
-    cout << "Updating prefix";
-    usleep(displaytime);
+    PrintStatus("Updating prefix",NULL);
     if (UpdatePrefix(curPrefix))
     {
-        lasterror;
-        cerr << "Error update prefix\r\n";
+        PrintError("Error update prefix",NULL);
         goto end;
     }
 
-
     //инициализируем сеть для подключения ffmpeg-ов
-    currentaction();
-    cout << "Инициализируем сеть для подключения ffmpeg-ов";
-    usleep(displaytime);
-    if (NetInit(mainSocket, incomingTcpPort, countReconect, timePeriodReconect))
+    PrintStatus("Инициализируем сеть для подключения ffmpeg-ов",NULL);
+    if (net.NetInit())
     {
-        if (stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.        
-        lasterror;
-        cerr << "Ошибка инициализации сети.\r\n";
+        if (set.stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.        
+        PrintError("Ошибка инициализации сети.",NULL);
         mainErrorCode = 1;
         goto end;
     }
 
-
     gotoxy(column3, 3);
-    cout << "Max size:" << ms(maxFileSize) << "\r\n";
+    cout << "Max size:" << ms(set.maxFileSize) << "\r\n";
 
     /* основной цикл:*/
-    while (!stopProgramm)
+    while (!set.stopProgramm)
     {
         /*Проверим минимальное доступное место, если размер превышен то пробуем освободить место удаляя самые старые данные*/
-        currentaction();
-        cout << "Проверяемдоступное место";
-        usleep(displaytime);
-        currentAvailableSpace = fs::space(recordDir, ec).available;
+        PrintStatus("Проверяем доступное место",NULL);
+        currentAvailableSpace = fs::space(set.recordDir, ec).available;
         if (ec.value())
         {
-            lasterror;
-            cerr << "Ошибка проверки доступного места: " << ec.message() << "\r\n";
+            PrintError("Ошибка проверки доступного места: ",ec.message().c_str(),NULL);
             mainErrorCode = 2;
             goto end;
         }
@@ -354,61 +223,39 @@ int main(int argc, char** argv) {
         COLOR(40, 33);
         cout << ms(currentAvailableSpace) << "\r\n";
         gotoxy(column2, 2);
-        cout << "Минимум: " << ms(minFreeSpace) << "\r\n";
+        cout << "Минимум: " << ms(set.minFreeSpace) << "\r\n";
         resetcolor();
 
-        if (currentAvailableSpace < minFreeSpace)
-            if (DeleteOldFiles(recordDir, curPrefix))
-            {
-                lasterror;
-                cerr << "Ошибка при удалении самых старых файлов\r\n";
-            }
-
-
-
-
+        if (currentAvailableSpace < set.minFreeSpace)
+            if (DeleteOldFiles(set.recordDir, curPrefix))
+                PrintError("Ошибка при удалении самых старых файлов",NULL);
+            
         /* ждём входящие соеденения*/
-        currentaction();
-        cout << "Ожидаем входящее соеденение";
-        usleep(displaytime);
-        if (WaitConnetion(mainSocket, connectedSocket))
+        PrintStatus("Ожидаем входящее соеденение",NULL);
+        if (net.WaitConnetion())
         {
-            if (stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.
-            lasterror;
-            cerr << "Ошибка во время ожидания соеденения.\r\n";
+            if (set.stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.
+            PrintError("Ошибка во время ожидания соеденения.",NULL);
             mainErrorCode = 3;
             goto end;
         }
 
-
         /*получаем данные от FF*/
-        currentaction();
-        cout << "Получаем данные от FFMpeg";
-        usleep(displaytime);
-        if (ResiveFromFF(connectedSocket, recivedDataFF, 1000))
+        PrintStatus("Получаем данные от FFMpeg",NULL);
+        if (net.ResiveFromFF(recivedDataFF))
         {
-            if (stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.
-            lasterror;
-            cerr << "Ошибка принятия данных от FF.\r\n";
+            if (set.stopProgramm) goto end; //если получен сигнал о выходе то идем на выход без сообщения об ошибке.
+            PrintError("Ошибка принятия данных от FF.",NULL);
             mainErrorCode = 4;
             goto end;
         }
 
-        /*Закрываем сокет клиента*/
-        currentaction();
-        cout << "Закрываем сокет клиента";
-        usleep(displaytime);
-        close(connectedSocket);
-        connectedSocket = -1;
 
         /*нужно проверить есть ли такой канал уже в списке наших каналов*/
-        currentaction();
-        cout << "Проверяем есть ли такой канал в списке";
-        usleep(displaytime);
+        PrintStatus("Проверяем есть ли такой канал в списке",NULL);
         if (FindChannelId(recivedDataFF.camname, channels, currentChannelId))
         {
-            lasterror;
-            cerr << "Ошибка поиска канала в списке каналов. " << recivedDataFF.camname << "\r\n";
+            PrintError("Ошибка поиска канала в списке каналов. ",recivedDataFF.camname,NULL);
             mainErrorCode = 5;
             goto end;
         }
@@ -416,30 +263,22 @@ int main(int argc, char** argv) {
         /*проверяем если номер канала -1 то добавляем его в список*/
         if (currentChannelId == -1)
         {
-            currentaction();
-            cout << "Добавляем " << recivedDataFF.camname << " в список каналов.";
-            usleep(displaytime);
+            PrintStatus("Добавляем ",recivedDataFF.camname," в список каналов.",NULL);
             if (AddChannel(recivedDataFF, channels, currentChannelId))
             {
-                lasterror;
-                cerr << "Ошибка добавления канала в список каналов. " << recivedDataFF.camname << "\r\n";
+                PrintError("Ошибка добавления канала в список каналов. ",recivedDataFF.camname,NULL);
                 mainErrorCode = 6;
                 goto end;
             }
         }
-        
-        
-        
 
         /*Текущий канал*/
         Channel * currentChannel = channels.at(currentChannelId);
-        
+
         /*если в канале нет данных о видеофрагментах то значит это будет первый 
          * видеофрагмент и нам нужно записать его время старта которе потом запишем в большой файл*/
-        if(currentChannel->videoFragments->empty()){
+        if (currentChannel->videoFragments->empty())        
             currentChannel->firstStart = recivedDataFF.start;
-            
-        }
         gotoxy(column1, 4 + currentChannelId)cout << "Номер канала: " << currentChannelId << "\r\n";
         gotoxy(column2, 4 + currentChannelId);
         cout << "Name: " << currentChannel->name << "\r\n";
@@ -447,29 +286,21 @@ int main(int argc, char** argv) {
         cout << "File: " << recivedDataFF.filename << "\r\n";
 
         /*Читаем фрагмент в память*/
-
         /*Устанавливаем путь к файлу фрагмента*/
         currentSourseFile = recivedDataFF.source_dir;
         currentSourseFile += "/";
         currentSourseFile += recivedDataFF.filename;
 
-
-
         /*Проверяем существует ли исходный файл фрагмента*/
-        currentaction();
-        cout << "Проверяем существует ли файл " << currentSourseFile;
-        usleep(displaytime);
+        PrintStatus("Проверяем существует ли файл ",currentSourseFile,NULL);
         if (!fs::exists(currentSourseFile))
         {
-            lasterror;
-            cerr << "Ошибка: файл " << currentSourseFile << " не существует.\r\n";
+            PrintError("Ошибка: файл ", currentSourseFile, " не существует.",NULL);
             continue;
         }
 
         /*Смотрим размер в байтах исходного файла фрагмента*/
-        currentaction();
-        cout << "Смотрим размер в байтах файла сегмента видео данных";
-        usleep(displaytime);
+        PrintStatus("Смотрим размер в байтах файла сегмента видео данных",NULL);
         currentSrcSize = fs::file_size(currentSourseFile);
         gotoxy(column5, 4 + currentChannelId);
         cout << "Size: " << ms(currentSrcSize) << "\r\n";
@@ -477,86 +308,57 @@ int main(int argc, char** argv) {
         /*Выделяем место в оперативной памяти для загрузки всего файла*/
         char buffer[currentSrcSize];
 
-
         /*Открываем файл для чтения*/
-        currentaction();
-        cout << "Открываем файл для чтения";
-        usleep(displaytime);
+        PrintStatus("Открываем файл для чтения",NULL);
         FILE * srcFile = fopen(currentSourseFile.c_str(), "r");
 
         /*Читаем содержимое в память*/
-        currentaction();
-        cout << "Читаем содержимое в память";
-        usleep(displaytime);
+        PrintStatus("Читаем содержимое в память",NULL);
         if (fread(buffer, currentSrcSize, 1, srcFile) != 1)
         {
-            lasterror;
-            cerr << "Ошибка при чтении файла " << currentSourseFile << " ";
-            cerr << strerror(errno) << "\r\n";
+            PrintError("Ошибка при чтении файла " ,currentSourseFile,strerror(errno),NULL);
             fclose(srcFile);
             srcFile = NULL;
             continue;
         }
 
         /*Закрываем файл фрагмента*/
-        currentaction();
-        cout << "Закрываем файл фрагмента";
-        usleep(displaytime);
+        PrintStatus("Закрываем файл фрагмента",NULL);
         fclose(srcFile);
 
-
-
-
-
         /*Проверяем открыт ли текущий большой файл видеоданных*/
-        currentaction();
-        cout << "Проверяем открыт ли текущий большой файл видеоданных, и не превышает ли он заданный размер";
-        usleep(displaytime);
+        PrintStatus("Проверяем открыт ли текущий большой файл видеоданных, и не превышает ли он заданный размер",NULL);
         if (dstFile == NULL)
         {
-            currentaction();
-            cout << "Создаём новый большой файл видеоданных";
-            usleep(displaytime);
-            if (CreateNewDstFile(dstFile, curPrefix, currentDstFile, recordDir))
-            {
-                lasterror;
-                cerr << "Ошибка создания файла\r\n";
-            }
+            PrintStatus("Создаём новый большой файл видеоданных",NULL);
+            if (CreateNewDstFile(dstFile, curPrefix, currentDstFile, set.recordDir))
+                PrintError("Ошибка создания файла",NULL);
         }
 
         /*Выясняем текущий размер большого файла, он же старт текущего сегмента в нем*/
         currentDstSize = currentStartPosIBigFile = fs::file_size(currentDstFile);
 
-
-        if (currentDstSize + currentSrcSize >= maxFileSize)
+        if (currentDstSize + currentSrcSize >= set.maxFileSize)
         {
             MetaData::CloseExistingDstFile(dstFile, channels);
-            
+
             /*Почистим экран*/
-            for(int h=0;h<channels.size();h++){
-                gotoxy(column3,5+h);printf(ESC "[0K");
-            }
-            
-            currentaction();            
-            cout << "Создаём новый большой файл видеоданных";
-            sleep(1);
-            usleep(displaytime);
-            if (CreateNewDstFile(dstFile, curPrefix, currentDstFile, recordDir))
+            for (int h = 0; h < channels.size(); h++)
             {
-                lasterror;
-                cerr << "Ошибка создания файла\r\n";
+                gotoxy(column3, 5 + h);
+                printf(ESC "[0K");
             }
+
+            PrintStatus("Создаём новый большой файл видеоданных",NULL);
+            if (CreateNewDstFile(dstFile, curPrefix, currentDstFile, set.recordDir))            
+                PrintError("Ошибка создания файла",NULL);            
         }
 
-
         /*Пишем в файл данные которые мы считали ранее*/
-        currentaction();
-        cout << "Пишем в файл данные которые мы считали ранее";
-        usleep(displaytime);
+        PrintStatus("Пишем в файл данные которые мы считали ранее",NULL);
         if (fwrite(buffer, currentSrcSize, 1, dstFile) != 1)
         {
-            lasterror;
-            cerr << "Ошибка записи данных в файл видеоданных: " << strerror(errno) << "\r\n";
+            PrintError("Ошибка записи данных в файл видеоданных: " ,strerror(errno),NULL);
             fclose(dstFile);
             dstFile = NULL;
             continue;
@@ -568,47 +370,28 @@ int main(int argc, char** argv) {
         cout << "Size:" << ms(currentDstSize) << "\r\n";
 
         /*Заставляем систему сбросить все данные из кэша в файл*/
-        currentaction();
-        cout << "Заставляем систему сбросить все данные из кэша в файл";
-        usleep(displaytime);
+        PrintStatus("Заставляем систему сбросить все данные из кэша в файл",NULL);
         fflush(dstFile);
 
-
-
         /*Удаляем файл фрагмента, так как всё содержимое уже в памяти*/
-        currentaction();
-        cout << "Удаляем файл фрагмента, так как всё содержимое уже в памяти";
-        usleep(displaytime);
+        PrintStatus("Удаляем файл фрагмента, так как всё содержимое уже в памяти",NULL);
         fs::remove(currentSourseFile);
-
-
 
         /*Создаём структуру с данными о видеоврагменте*/
         currentVideoFragment = new VideoFileFragment(recivedDataFF.start, recivedDataFF.end, currentStartPosIBigFile, currentSrcSize);
 
-
-
         currentChannel->AddVideoFileFragment(currentVideoFragment);
         gotoxy(column6, 4 + currentChannelId);
         cout << "Фрагментов:" << currentChannel->Count() << "   \r\n";
-
     }
-
 
     /* Выход */
 end:
-    /*Закрываем подчинённый сокет*/
-    currentaction();
-    cout << "Закрываем подчинённый сокет";
-    usleep(displaytime);
-    if (connectedSocket != -1)
-        close(connectedSocket);
-    if (mainSocket != -1)
-        close(mainSocket);
+
+
     /*Закрываем файл видеоданных если он открыт*/
-    currentaction();
-    cout << "Закрываем файл видеоданных если он открыт";
-    usleep(displaytime);
+    PrintStatus("Закрываем файл видеоданных если он открыт",NULL);
+    usleep(set.displaytime);
     if (dstFile != NULL)
     {
         fflush(dstFile);

@@ -36,9 +36,12 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 # Object Files
 OBJECTFILES= \
 	${OBJECTDIR}/Channel.o \
+	${OBJECTDIR}/DataFromFFMpeg.o \
+	${OBJECTDIR}/Net.o \
+	${OBJECTDIR}/Settings.o \
+	${OBJECTDIR}/StatusPrint.o \
 	${OBJECTDIR}/VideoFileFragment.o \
 	${OBJECTDIR}/main.o \
-	${OBJECTDIR}/network.o \
 	${OBJECTDIR}/printer.o
 
 
@@ -71,6 +74,26 @@ ${OBJECTDIR}/Channel.o: Channel.cpp
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Channel.o Channel.cpp
 
+${OBJECTDIR}/DataFromFFMpeg.o: DataFromFFMpeg.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DataFromFFMpeg.o DataFromFFMpeg.cpp
+
+${OBJECTDIR}/Net.o: Net.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Net.o Net.cpp
+
+${OBJECTDIR}/Settings.o: Settings.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Settings.o Settings.cpp
+
+${OBJECTDIR}/StatusPrint.o: StatusPrint.cpp
+	${MKDIR} -p ${OBJECTDIR}
+	${RM} "$@.d"
+	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/StatusPrint.o StatusPrint.cpp
+
 ${OBJECTDIR}/VideoFileFragment.o: VideoFileFragment.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
@@ -80,11 +103,6 @@ ${OBJECTDIR}/main.o: main.cpp
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
 	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
-
-${OBJECTDIR}/network.o: network.cpp
-	${MKDIR} -p ${OBJECTDIR}
-	${RM} "$@.d"
-	$(COMPILE.cc) -O2 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/network.o network.cpp
 
 ${OBJECTDIR}/printer.o: printer.cpp
 	${MKDIR} -p ${OBJECTDIR}
