@@ -35,6 +35,12 @@ void Myprint(const char* first, ...) {
  * 
  */
 int main(int argc, char** argv) {
+    
+    
+    unsigned short a = -4;
+    printf("%u\r\n",a);
+    printf("%d\r\n",a);
+    return 0;
 
     Myprint("hello", "world","My","Name","is Dima", NULL);
     return 0;

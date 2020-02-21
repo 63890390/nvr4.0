@@ -37,8 +37,13 @@
       <compileType>
         <ccTool>
           <standard>11</standard>
+          <incDir>
+            <pElem>/home/tenevoi/NetBeansProjects/nvr4.0</pElem>
+            <pElem>/home/tenevoi/NetBeansProjects/nvr4.0/MetaData</pElem>
+          </incDir>
         </ccTool>
         <linkerTool>
+          <linkerCopySharedLibs>true</linkerCopySharedLibs>
           <linkerLibItems>
             <linkerLibStdlibItem>PosixThreads</linkerLibStdlibItem>
             <linkerLibLibItem>stdc++fs</linkerLibLibItem>

@@ -35,14 +35,16 @@ OBJECTDIR=${CND_BUILDDIR}/${CND_CONF}/${CND_PLATFORM}
 
 # Object Files
 OBJECTFILES= \
-	${OBJECTDIR}/Channel.o \
-	${OBJECTDIR}/DataFromFFMpeg.o \
-	${OBJECTDIR}/Net.o \
-	${OBJECTDIR}/Settings.o \
-	${OBJECTDIR}/StatusPrint.o \
-	${OBJECTDIR}/VideoFileFragment.o \
-	${OBJECTDIR}/main.o \
-	${OBJECTDIR}/printer.o
+	${OBJECTDIR}/Channel/Channel.o \
+	${OBJECTDIR}/DataFromFFMpeg/DataFromFFMpeg.o \
+	${OBJECTDIR}/MetaData/MetaData.o \
+	${OBJECTDIR}/Net/Net.o \
+	${OBJECTDIR}/Settings/Settings.o \
+	${OBJECTDIR}/StatusPrint/StatusPrint.o \
+	${OBJECTDIR}/VideoFragment/VideoFileFragment.o \
+	${OBJECTDIR}/netMonitor/netMonitor.o \
+	${OBJECTDIR}/printer/printer.o \
+	${OBJECTDIR}/writer.o
 
 
 # C Compiler Flags
@@ -69,45 +71,55 @@ ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/nvr4.0: ${OBJECTFILES}
 	${MKDIR} -p ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}
 	${LINK.cc} -o ${CND_DISTDIR}/${CND_CONF}/${CND_PLATFORM}/nvr4.0 ${OBJECTFILES} ${LDLIBSOPTIONS}
 
-${OBJECTDIR}/Channel.o: Channel.cpp
-	${MKDIR} -p ${OBJECTDIR}
+${OBJECTDIR}/Channel/Channel.o: Channel/Channel.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/Channel
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Channel.o Channel.cpp
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Channel/Channel.o Channel/Channel.cpp
 
-${OBJECTDIR}/DataFromFFMpeg.o: DataFromFFMpeg.cpp
-	${MKDIR} -p ${OBJECTDIR}
+${OBJECTDIR}/DataFromFFMpeg/DataFromFFMpeg.o: DataFromFFMpeg/DataFromFFMpeg.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/DataFromFFMpeg
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DataFromFFMpeg.o DataFromFFMpeg.cpp
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/DataFromFFMpeg/DataFromFFMpeg.o DataFromFFMpeg/DataFromFFMpeg.cpp
 
-${OBJECTDIR}/Net.o: Net.cpp
-	${MKDIR} -p ${OBJECTDIR}
+${OBJECTDIR}/MetaData/MetaData.o: MetaData/MetaData.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/MetaData
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Net.o Net.cpp
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/MetaData/MetaData.o MetaData/MetaData.cpp
 
-${OBJECTDIR}/Settings.o: Settings.cpp
-	${MKDIR} -p ${OBJECTDIR}
+${OBJECTDIR}/Net/Net.o: Net/Net.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/Net
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Settings.o Settings.cpp
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Net/Net.o Net/Net.cpp
 
-${OBJECTDIR}/StatusPrint.o: StatusPrint.cpp
-	${MKDIR} -p ${OBJECTDIR}
+${OBJECTDIR}/Settings/Settings.o: Settings/Settings.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/Settings
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/StatusPrint.o StatusPrint.cpp
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/Settings/Settings.o Settings/Settings.cpp
 
-${OBJECTDIR}/VideoFileFragment.o: VideoFileFragment.cpp
-	${MKDIR} -p ${OBJECTDIR}
+${OBJECTDIR}/StatusPrint/StatusPrint.o: StatusPrint/StatusPrint.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/StatusPrint
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/VideoFileFragment.o VideoFileFragment.cpp
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/StatusPrint/StatusPrint.o StatusPrint/StatusPrint.cpp
 
-${OBJECTDIR}/main.o: main.cpp
-	${MKDIR} -p ${OBJECTDIR}
+${OBJECTDIR}/VideoFragment/VideoFileFragment.o: VideoFragment/VideoFileFragment.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/VideoFragment
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/main.o main.cpp
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/VideoFragment/VideoFileFragment.o VideoFragment/VideoFileFragment.cpp
 
-${OBJECTDIR}/printer.o: printer.cpp
+${OBJECTDIR}/netMonitor/netMonitor.o: netMonitor/netMonitor.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/netMonitor
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/netMonitor/netMonitor.o netMonitor/netMonitor.cpp
+
+${OBJECTDIR}/printer/printer.o: printer/printer.cpp nbproject/Makefile-${CND_CONF}.mk
+	${MKDIR} -p ${OBJECTDIR}/printer
+	${RM} "$@.d"
+	$(COMPILE.cc) -O3 -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/printer/printer.o printer/printer.cpp
+
+${OBJECTDIR}/writer.o: writer.cpp nbproject/Makefile-${CND_CONF}.mk
 	${MKDIR} -p ${OBJECTDIR}
 	${RM} "$@.d"
-	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/printer.o printer.cpp
+	$(COMPILE.cc) -g -std=c++14 -MMD -MP -MF "$@.d" -o ${OBJECTDIR}/writer.o writer.cpp
 
 # Subprojects
 .build-subprojects:

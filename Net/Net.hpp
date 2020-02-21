@@ -15,8 +15,8 @@
 #define NET_HPP
 
 #include <cstdio>
-#include "DataFromFFMpeg.hpp"
-#include "Settings.hpp"
+#include "../DataFromFFMpeg/DataFromFFMpeg.hpp"
+#include "../Settings/Settings.hpp"
 
 class Net {
 public:

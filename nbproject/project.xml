@@ -9,7 +9,18 @@
             <header-extensions>hpp</header-extensions>
             <sourceEncoding>UTF-8</sourceEncoding>
             <make-dep-projects/>
-            <sourceRootList/>
+            <sourceRootList>
+                <sourceRootElem>MetaData</sourceRootElem>
+                <sourceRootElem>Channel</sourceRootElem>
+                <sourceRootElem>DataFromFFMpeg</sourceRootElem>
+                <sourceRootElem>ms</sourceRootElem>
+                <sourceRootElem>Net</sourceRootElem>
+                <sourceRootElem>netMonitor</sourceRootElem>
+                <sourceRootElem>printer</sourceRootElem>
+                <sourceRootElem>Settings</sourceRootElem>
+                <sourceRootElem>StatusPrint</sourceRootElem>
+                <sourceRootElem>VideoFragment</sourceRootElem>
+            </sourceRootList>
             <confList>
                 <confElem>
                     <name>Debug</name>

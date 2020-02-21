@@ -17,7 +17,7 @@
 #include <cstdint> //for std::uintmax_t
 #include <vector>
 
-#include "VideoFileFragment.hpp"
+#include "../VideoFragment/VideoFileFragment.hpp"
 class Channel {
 public:
     Channel(const long double firstStart, const char name[]);

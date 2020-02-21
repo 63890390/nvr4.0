@@ -13,7 +13,7 @@
 
 #ifndef PRINTER_HPP
 #define PRINTER_HPP
-#include "terminal_control.hpp"
+#include "../terminal_control.hpp"
 #include <stdio.h>
 #include <iostream>
 #include<string.h>

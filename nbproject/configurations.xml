@@ -5,40 +5,56 @@
                    displayName="Исходные файлы"
                    projectFiles="true">
       <logicalFolder name="f3" displayName="Classes" projectFiles="true">
-        <logicalFolder name="f1" displayName="Channel" projectFiles="true">
-          <itemPath>Channel.cpp</itemPath>
-          <itemPath>Channel.hpp</itemPath>
+        <logicalFolder name="Channel" displayName="Channel" projectFiles="true">
+          <itemPath>Channel/Channel.cpp</itemPath>
+          <itemPath>Channel/Channel.hpp</itemPath>
         </logicalFolder>
-        <logicalFolder name="f5" displayName="DataFromFFMpeg" projectFiles="true">
-          <itemPath>DataFromFFMpeg.cpp</itemPath>
-          <itemPath>DataFromFFMpeg.hpp</itemPath>
+        <logicalFolder name="DataFromFFMpeg"
+                       displayName="DataFromFFMpeg"
+                       projectFiles="true">
+          <itemPath>DataFromFFMpeg/DataFromFFMpeg.cpp</itemPath>
+          <itemPath>DataFromFFMpeg/DataFromFFMpeg.hpp</itemPath>
         </logicalFolder>
         <logicalFolder name="f3" displayName="MetaData" projectFiles="true">
-          <itemPath>MetaData.hpp</itemPath>
+          <itemPath>MetaData/MetaData.cpp</itemPath>
+          <itemPath>MetaData/MetaData.hpp</itemPath>
         </logicalFolder>
-        <logicalFolder name="f6" displayName="Net" projectFiles="true">
-          <itemPath>Net.cpp</itemPath>
-          <itemPath>Net.hpp</itemPath>
+        <logicalFolder name="ms" displayName="ms" projectFiles="true">
+          <itemPath>ms/ms.hpp</itemPath>
         </logicalFolder>
-        <logicalFolder name="f4" displayName="Settings" projectFiles="true">
-          <itemPath>Settings.cpp</itemPath>
-          <itemPath>Settings.hpp</itemPath>
+        <logicalFolder name="Net" displayName="Net" projectFiles="true">
+          <itemPath>Net/Net.cpp</itemPath>
+          <itemPath>Net/Net.hpp</itemPath>
         </logicalFolder>
-        <logicalFolder name="f2" displayName="VideoFileFragment" projectFiles="true">
-          <itemPath>VideoFileFragment.cpp</itemPath>
-          <itemPath>VideoFileFragment.hpp</itemPath>
+        <logicalFolder name="netMonitor" displayName="netMonitor" projectFiles="true">
+          <itemPath>netMonitor/netMonitor.cpp</itemPath>
+          <itemPath>netMonitor/netMonitor.hpp</itemPath>
+        </logicalFolder>
+        <logicalFolder name="printer" displayName="printer" projectFiles="true">
+          <itemPath>printer/printer.cpp</itemPath>
+          <itemPath>printer/printer.hpp</itemPath>
+        </logicalFolder>
+        <logicalFolder name="Settings" displayName="Settings" projectFiles="true">
+          <itemPath>Settings/Settings.cpp</itemPath>
+          <itemPath>Settings/Settings.hpp</itemPath>
+        </logicalFolder>
+        <logicalFolder name="StatusPrint" displayName="StatusPrint" projectFiles="true">
+          <itemPath>StatusPrint/StatusPrint.cpp</itemPath>
+          <itemPath>StatusPrint/StatusPrint.hpp</itemPath>
+        </logicalFolder>
+        <logicalFolder name="VideoFragment"
+                       displayName="VideoFragment"
+                       projectFiles="true">
+          <itemPath>VideoFragment/VideoFileFragment.cpp</itemPath>
+          <itemPath>VideoFragment/VideoFileFragment.hpp</itemPath>
         </logicalFolder>
       </logicalFolder>
-      <itemPath>StatusPrint.cpp</itemPath>
-      <itemPath>StatusPrint.hpp</itemPath>
-      <itemPath>main.cpp</itemPath>
-      <itemPath>printer.cpp</itemPath>
+      <itemPath>/home/tenevoi/NetBeansProjects/nvr4.0/MetaData/reader.cpp</itemPath>
+      <itemPath>writer.cpp</itemPath>
     </logicalFolder>
     <logicalFolder name="HeaderFiles"
                    displayName="Файлы заголовков"
                    projectFiles="true">
-      <itemPath>ms.hpp</itemPath>
-      <itemPath>printer.hpp</itemPath>
       <itemPath>terminal_control.hpp</itemPath>
     </logicalFolder>
     <logicalFolder name="ResourceFiles"
@@ -57,16 +73,30 @@
       <itemPath>Makefile</itemPath>
     </logicalFolder>
   </logicalFolder>
+  <sourceRootList>
+    <Elem>MetaData</Elem>
+    <Elem>Channel</Elem>
+    <Elem>DataFromFFMpeg</Elem>
+    <Elem>ms</Elem>
+    <Elem>Net</Elem>
+    <Elem>netMonitor</Elem>
+    <Elem>printer</Elem>
+    <Elem>Settings</Elem>
+    <Elem>StatusPrint</Elem>
+    <Elem>VideoFragment</Elem>
+  </sourceRootList>
   <projectmakefile>Makefile</projectmakefile>
   <confs>
-    <conf name="Debug" type="1">
+    <conf name="Debug" type="1" platformSpecific="true">
       <toolsSet>
         <compilerSet>default</compilerSet>
+        <platform>2</platform>
         <dependencyChecking>true</dependencyChecking>
-        <rebuildPropChanged>false</rebuildPropChanged>
+        <rebuildPropChanged>true</rebuildPropChanged>
       </toolsSet>
       <compileType>
         <ccTool>
+          <developmentMode>6</developmentMode>
           <standard>11</standard>
         </ccTool>
         <linkerTool>
@@ -76,41 +106,56 @@
           </linkerLibItems>
         </linkerTool>
       </compileType>
-      <item path="Channel.cpp" ex="false" tool="1" flavor2="0">
+      <item path="Channel/Channel.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Channel.hpp" ex="false" tool="3" flavor2="0">
+      <item path="Channel/Channel.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="DataFromFFMpeg.cpp" ex="false" tool="1" flavor2="0">
+      <item path="DataFromFFMpeg/DataFromFFMpeg.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="DataFromFFMpeg.hpp" ex="false" tool="3" flavor2="0">
+      <item path="DataFromFFMpeg/DataFromFFMpeg.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="MetaData.hpp" ex="false" tool="3" flavor2="0">
+      <item path="MetaData/MetaData.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Net.cpp" ex="false" tool="1" flavor2="0">
+      <item path="MetaData/MetaData.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Net.hpp" ex="false" tool="3" flavor2="0">
+      <item path="Net/Net.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Settings.cpp" ex="false" tool="1" flavor2="0">
+      <item path="Net/Net.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Settings.hpp" ex="false" tool="3" flavor2="0">
+      <item path="Settings/Settings.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="StatusPrint.cpp" ex="false" tool="1" flavor2="0">
+      <item path="Settings/Settings.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="StatusPrint.hpp" ex="false" tool="3" flavor2="0">
+      <item path="StatusPrint/StatusPrint.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="VideoFileFragment.cpp" ex="false" tool="1" flavor2="0">
+      <item path="StatusPrint/StatusPrint.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="VideoFileFragment.hpp" ex="false" tool="3" flavor2="0">
+      <item path="VideoFragment/VideoFileFragment.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
-      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      <item path="VideoFragment/VideoFileFragment.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
-      <item path="ms.hpp" ex="false" tool="3" flavor2="0">
+      <item path="ms/ms.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="printer.cpp" ex="false" tool="1" flavor2="0">
+      <item path="netMonitor/netMonitor.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="printer.hpp" ex="false" tool="3" flavor2="0">
+      <item path="netMonitor/netMonitor.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="printer/printer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="printer/printer.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="terminal_control.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="writer.cpp" ex="false" tool="1" flavor2="0">
+        <ccTool>
+          <developmentMode>1</developmentMode>
+        </ccTool>
       </item>
     </conf>
     <conf name="Release" type="1">
@@ -134,41 +179,58 @@
           <developmentMode>5</developmentMode>
         </asmTool>
       </compileType>
-      <item path="Channel.cpp" ex="false" tool="1" flavor2="0">
+      <item path="/home/tenevoi/NetBeansProjects/nvr4.0/MetaData/reader.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
-      <item path="Channel.hpp" ex="false" tool="3" flavor2="0">
+      <item path="Channel/Channel.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="DataFromFFMpeg.cpp" ex="false" tool="1" flavor2="0">
+      <item path="Channel/Channel.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="DataFromFFMpeg.hpp" ex="false" tool="3" flavor2="0">
+      <item path="DataFromFFMpeg/DataFromFFMpeg.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="MetaData.hpp" ex="false" tool="3" flavor2="0">
+      <item path="DataFromFFMpeg/DataFromFFMpeg.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Net.cpp" ex="false" tool="1" flavor2="0">
+      <item path="MetaData/MetaData.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Net.hpp" ex="false" tool="3" flavor2="0">
+      <item path="MetaData/MetaData.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="Settings.cpp" ex="false" tool="1" flavor2="0">
+      <item path="Net/Net.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="Settings.hpp" ex="false" tool="3" flavor2="0">
+      <item path="Net/Net.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="StatusPrint.cpp" ex="false" tool="1" flavor2="0">
+      <item path="Settings/Settings.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="StatusPrint.hpp" ex="false" tool="3" flavor2="0">
+      <item path="Settings/Settings.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="VideoFileFragment.cpp" ex="false" tool="1" flavor2="0">
+      <item path="StatusPrint/StatusPrint.cpp" ex="false" tool="1" flavor2="0">
       </item>
-      <item path="VideoFileFragment.hpp" ex="false" tool="3" flavor2="0">
+      <item path="StatusPrint/StatusPrint.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="main.cpp" ex="false" tool="1" flavor2="0">
+      <item path="VideoFragment/VideoFileFragment.cpp"
+            ex="false"
+            tool="1"
+            flavor2="0">
       </item>
-      <item path="ms.hpp" ex="false" tool="3" flavor2="0">
+      <item path="VideoFragment/VideoFileFragment.hpp"
+            ex="false"
+            tool="3"
+            flavor2="0">
       </item>
-      <item path="printer.cpp" ex="false" tool="1" flavor2="0">
+      <item path="ms/ms.hpp" ex="false" tool="3" flavor2="0">
       </item>
-      <item path="printer.hpp" ex="false" tool="3" flavor2="0">
+      <item path="netMonitor/netMonitor.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="netMonitor/netMonitor.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="printer/printer.cpp" ex="false" tool="1" flavor2="0">
+      </item>
+      <item path="printer/printer.hpp" ex="false" tool="3" flavor2="0">
       </item>
       <item path="terminal_control.hpp" ex="false" tool="3" flavor2="0">
+      </item>
+      <item path="writer.cpp" ex="false" tool="1" flavor2="0">
       </item>
     </conf>
   </confs>

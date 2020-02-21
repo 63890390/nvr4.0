@@ -11,9 +11,9 @@
  * Created on 20 февраля 2020 г., 14:45
  */
 
-#include "Net.hpp"
-#include "StatusPrint.hpp"
-#include "Settings.hpp"
+#include "../Net/Net.hpp"
+#include "../StatusPrint/StatusPrint.hpp"
+#include "../Settings/Settings.hpp"
 #include <netinet/ip.h>
 #include <string.h>
 #include <thread>
