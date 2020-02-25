@@ -45,7 +45,7 @@ namespace fs = std::experimental::filesystem;
 
 Settings set;
 Net net(set);
-netMonitor monitor;
+//netMonitor monitor;
 
 /*действия которые будут происходить при получении сигнала от ядра операционной системы*/
 void term_handler(int i) {
@@ -153,7 +153,7 @@ bool CreateNewDstFile(FILE* &dstFile, string &curPrefix, fs::path &currentDstFil
 }
 
 int main(int argc, char** argv) {
-    freopen("/dev/null","a",stdout);
+    //freopen("/dev/null","a",stdout);
     
     /*Включаем отлавливание прерывание программы*/
     setExitFunction();

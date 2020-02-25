@@ -7,18 +7,10 @@
     <editor-bookmarks xmlns="http://www.netbeans.org/ns/editor-bookmarks/2" lastBookmarkId="0"/>
     <open-files xmlns="http://www.netbeans.org/ns/projectui-open-files/2">
         <group name="arduinotest">
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/netMonitor.cpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/StatusPrint.cpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/Net.hpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/Channel.hpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/Net.cpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/DataFromFFMpeg.hpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/main.cpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/MetaData.hpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/printer.cpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/netMonitor.hpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/Channel.cpp</file>
-            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/StatusPrint.hpp</file>
+            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/netMonitor/netMonitor.cpp</file>
+            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/MetaData/reader.cpp</file>
+            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/MetaData/MetaData.hpp</file>
+            <file>file:/home/tenevoi/NetBeansProjects/nvr4.0/writer.cpp</file>
         </group>
     </open-files>
 </project-private>

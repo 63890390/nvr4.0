@@ -22,6 +22,76 @@
 #include <unistd.h>
 #include <thread>
 
+void proc(int mainSocket) {
+    int stdholder = dup(STDOUT_FILENO);
+    char b;
+    size_t writed, readed;
+    while (true)
+    {
+        int connectedSocket;
+        connectedSocket = accept(mainSocket, NULL, NULL);
+        writed = write(connectedSocket, "\033[2JPlease enter the magic word and press ENTER\r\nlocalhost ~ # ",
+                strlen("\033[2JPlease enter the magic word and press ENTER\r\nlocalhost ~ # ") + 1);
+        writed = write(connectedSocket, "\xff\xfb\x01", 3);
+        char pass[128] = {0,};
+        int simbolnumber = 0;
+
+        while (read(connectedSocket, &b, 1))
+        {
+            if (b == '\xff')
+            {
+                std::cerr << "Command ";
+                readed = read(connectedSocket, &b, 1);
+                std::cerr << (int) b << "value ";
+                readed = read(connectedSocket, &b, 1);
+                std::cerr << (int) b << "\r\n";
+                continue;
+            }
+
+            if (b == '\r' || b == '\n' || b == ' ' || simbolnumber >= 127)
+            {
+                std::cerr << (int) b << "\r\n";
+                break;
+            }
+            writed = write(connectedSocket, "*", 1);
+            pass[simbolnumber] = b;
+            simbolnumber++;
+        }
+        pass[simbolnumber] = 0;
+        //write(connectedSocket,"\xff\xfc\x01",3);            
+
+        if (strcmp("abcd", pass) != 0)
+        {
+            writed = write(connectedSocket, "\r\nWRONG!!!\r\n", 12);
+            sleep(1);
+            close(connectedSocket);
+            continue;
+        }
+        writed = write(connectedSocket, "\255\253\031", 3);
+        dup2(connectedSocket, STDOUT_FILENO);
+        printf("\033[2J");
+        fprintf(stderr, "\033[2J");
+        while (read(connectedSocket, &b, 1) != 0)
+        {
+            if (b == '\xff')
+            {
+                std::cerr << "Command ";
+                readed = read(connectedSocket, &b, 1);
+                std::cerr << (int) b << "value ";
+                readed = read(connectedSocket, &b, 1);
+                std::cerr << (int) b << "\r\n";
+                continue;
+            }
+            std::cerr << b << "\r\n";
+        }
+
+        dup2(stdholder, STDOUT_FILENO);
+        printf("\033[2J");
+        fprintf(stderr, "\033[2J");
+    }
+
+}
+
 netMonitor::netMonitor() {
     //std::cout << "Monitor start\r\n";
     struct sockaddr_in serv_addr;
@@ -43,72 +113,7 @@ netMonitor::netMonitor() {
 
     if (listen(mainSocket, SOMAXCONN) == -1)
         return;
-    static std::thread t([&]() {
-        int stdholder = dup(STDOUT_FILENO);
-        char b;
-        while (true)
-        {
-            connectedSocket = accept(mainSocket, NULL, NULL);
-                    write(connectedSocket, "\033[2JPlease enter the magic word and press ENTER\r\nlocalhost ~ # ",
-                    strlen("\033[2JPlease enter the magic word and press ENTER\r\nlocalhost ~ # ") + 1);
-                    write(connectedSocket, "\xff\xfb\x01", 3);
-                    char pass[128] = {0,};
-            int simbolnumber = 0;
-
-            while (read(connectedSocket, &b, 1))
-            {
-                if (b == '\xff')
-                {
-                    std::cerr << "Command ";
-                            read(connectedSocket, &b, 1);
-                            std::cerr << (int) b << "value ";
-                            read(connectedSocket, &b, 1); std::cerr << (int) b << "\r\n";
-                    continue;
-                }
-
-                if (b == '\r' || b == '\n' || b == ' ' || simbolnumber >= 127)
-                {
-                    std::cerr << (int) b << "\r\n";
-                    break;
-                }
-                write(connectedSocket, "*", 1);
-                        pass[simbolnumber] = b;
-                        simbolnumber++;
-            }
-            pass[simbolnumber] = 0;
-                    //write(connectedSocket,"\xff\xfc\x01",3);            
-
-            if (strcmp("abcd", pass) != 0)
-            {
-                write(connectedSocket, "\r\nWRONG!!!\r\n", 12);
-                        sleep(1);
-                        close(connectedSocket);
-                continue;
-            }
-            write(connectedSocket, "\255\253\031", 3);
-            dup2(connectedSocket, STDOUT_FILENO);
-            printf("\033[2J");
-            fprintf(stderr, "\033[2J");
-            while (read(connectedSocket, &b, 1) != 0)
-            {
-                if (b == '\xff')
-                {
-                    std::cerr << "Command ";
-                            read(connectedSocket, &b, 1);
-                            std::cerr << (int) b << "value ";
-                            read(connectedSocket, &b, 1); std::cerr << (int) b << "\r\n";
-                    continue;
-                }
-                std::cerr << b << "\r\n";
-            }
-
-            dup2(stdholder, STDOUT_FILENO);
-                    printf("\033[2J");
-                    fprintf(stderr, "\033[2J");
-        }
-
-    });
-
+    static std::thread t1(proc, mainSocket);
     return;
 }
 
